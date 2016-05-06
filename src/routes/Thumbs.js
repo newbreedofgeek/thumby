@@ -2,6 +2,7 @@ import { inspect } from 'util';
 import fs from 'fs-extra';
 import lwip from 'lwip';
 import cfg from '../config';
+import path from 'path';
 
 class Thumbs {
   route(req, res) {
@@ -11,103 +12,97 @@ class Thumbs {
   }
 
   create(req, res) {
-    let currTs = +new Date();
-
     if (req.busboy) {
-      req.busboy.on('file', function (fieldname, file, fn, encoding, mimetype) {
-        let filename = currTs.toString() + '_' + fn;
+      req.busboy.on('file', (fieldname, file, fn) => {
+        const filename = `${new Date().getTime().toString()}_${fn}`;
 
-        console.log('Controller for /img/thumbs > uploading raw file to originals folder: ' + filename);
-
-        //Path where image will be uploaded
-        let fstream = fs.createWriteStream(__dirname + '/../..' + cfg.thumbs.storageRoot + '/originals/' + filename);
+        // Path where image will be uploaded
+        const fstream = fs.createWriteStream(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/originals/', filename));
         file.pipe(fstream);
 
-        fstream.on('close', function () {
-            console.log('Controller for /img/thumbs > raw file upload finished for: ' + filename);
+        fstream.on('close', () => {
+          console.log(`Thumbs > raw file upload finished for: ${filename}`);
 
-            lwip.open(__dirname + '/../..' + cfg.thumbs.storageRoot + '/originals/' + filename, function(err, image){
+          lwip.open(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/originals/', filename), (e1, image) => {
+            if (!e1) {
+              console.log(`Thumbs > open and make thumbs for: ${filename} original rez is width ${image.width()} height = ${image.height()}`);
 
-                if (!err) {
-                  console.log('Controller for /img/thumbs > open and make thumbs for: ' + filename + ' original rez is width = ' + image.width() + ' height = ' + image.height());
+              // Landscape rules
+              // 1) width is larger than height with extra 30 pixel buffer to account for nearsquare images
+              // 2) it assumes images have a larger than 600 pixel widths
+              if (image.width() > (image.height() + 30)) {
+                console.log(`Thumbs > raw file is a Landscape image: ${filename}!`);
 
-                  // Landscape rules
-                  // 1) width is larger than height with extra 30 pixel buffer to account for nearsquare images
-                  // 2) it assumes images have a larger than 600 pixel widths
-                  if (image.width() > (image.height() + 30)) {
-                    console.log('Controller for /img/thumbs > raw file is a Landscape image : ' + filename );
+                image.clone((e2, clone1) => {
+                  if (e2) return console.warn('error creating clone 1:', e2);
+                  console.log(`Thumbs > clone 1 created for the raw file of: ${filename}!`);
 
-                      image.clone(function(err, clone1) {
-                          if (err) return console.warn("error creating clone 1:", err);
+                  clone1.batch()
+                  .scale(parseInt(cfg.thumbs.landscape.lrgWidth, 10) / image.width())
+                  .writeFile(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/thumbs/lrg/', filename), (e3) => {
+                    if (e3) return console.warn('error write file for clone 1', e3);
+                    console.log(`Thumbs > med Thumb created for: ${filename}`);
 
-                            console.log('Controller for /img/thumbs > clone 1 created for the raw file of: ' + filename );
+                    image.clone((e4, clone2) => {
+                      if (e4) return console.warn('error creating clone 2:', e4);
 
-                            clone1.batch()
-                                .scale(parseInt(cfg.thumbs.landscape.lrgWidth) / image.width())
-                                .writeFile(__dirname + '/../..' + cfg.thumbs.storageRoot + '/thumbs/lrg/' + filename, function(err) {
-                                    if (err) return console.warn("error write file for clone 1", err);
-                                    console.log('Controller for /img/thumbs > med Thumb created for: ' + filename );
+                      console.log(`Thumbs > Clone 2 created for the raw file of: ${filename}`);
 
-                                    image.clone(function(err, clone2) {
-                                        if (err) return console.warn("error creating clone 2:", err);
+                      clone2.batch()
+                      .scale(parseInt(cfg.thumbs.landscape.medWidth, 10) / image.width())
+                      .writeFile(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/thumbs/med/', filename), (e5) => {
+                        if (e5) return console.warn('error write file for clone 2', e5);
+                        console.log(`Thumbs > lrg Thumb created for: ${filename}`);
 
-                                        console.log('Controller for /img/thumbs > Ccone 2 created for the raw file of: ' + filename );
+                        image.clone((e6, clone3) => {
+                          if (e6) return console.warn('error creating clone 3:', e6);
 
-                                        clone2.batch()
-                                            .scale(parseInt(cfg.thumbs.landscape.medWidth) / image.width())
-                                            .writeFile(__dirname + '/../..' + cfg.thumbs.storageRoot + '/thumbs/med/' + filename, function(err) {
-                                                if (err) return console.warn("error write file for clone 2", err);
-                                                console.log('Controller for /img/thumbs > lrg Thumb created for: ' + filename );
+                          console.log(`Thumbs > clone 3 created for the raw file of: ${filename}`);
 
-                                                image.clone(function(err, clone3) {
-                                                    if (err) return console.warn("error creating clone 3:", err);
+                          clone3.batch()
+                          .scale(parseInt(cfg.thumbs.landscape.smlWidth, 10) / image.width())
+                          .writeFile(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/thumbs/sml/', filename), (e7) => {
+                            if (e7) return console.warn('Error write file for clone 3:', e7);
+                            console.log(`Thumbs > sml Thumb created for: ${filename}`);
 
-                                                    console.log('Controller for /img/thumbs > clone 3 created for the raw file of: ' + filename );
+                            console.log('Thumbs > All done, lets return a success.');
 
-                                                    clone3.batch()
-                                                        .scale(parseInt(cfg.thumbs.landscape.smlWidth) / image.width())
-                                                        .writeFile(__dirname + '/../..' + cfg.thumbs.storageRoot + '/thumbs/sml/' + filename, function(err) {
-                                                            if (err) return console.warn("Error write file for clone 3:", err);
-                                                            console.log('Controller for /img/thumbs > sml Thumb created for: ' + filename );
-
-                                                            console.log('Controller for /img/thumbs > All done, lets return a success.');
-
-                                                            res.json({
-                                                              ok: '1',
-                                                              filename: filename
-                                                            });
-                                                    });
-                                                });
-                                        });
-                                    });
+                            res.json({
+                              ok: '1',
+                              filename
                             });
+                          });
+                        });
                       });
-                  }
-                  else {
-                      // resize the thumb based on the height as its most probably a portrait image
-                  }
-                }
-                else {
-                  console.warn('Controller for /img/thumbs > Error the raw file for: ' + filename);
-                }
-            });
+                    });
+                  });
+                });
+              }
+              else {
+                console.log('its portrait');
+              }
+            }
+            else {
+              console.warn(`Thumbs > Error the raw file for: ' ${filename}`);
+            }
+          });
         });
-    });
+      });
 
-    req.busboy.on('field', function(fieldname, val, fieldnameTruncated, valTruncated) {
-      console.log('Controller for /img/thumbs > busboy - field received : ' + 'Field [' + fieldname + ']: value: ' + inspect(val));
-    });
+      req.busboy.on('field', (fieldname, val) => {
+        console.log(`Thumbs > busboy - field received : Field [' ${fieldname} ']: value: ' ${inspect(val)}`);
+      });
 
-    req.busboy.on('finish', function() {
-      console.log('Controller for /img/thumbs > busboy - middleware processing done');
-    });
+      req.busboy.on('finish', () => {
+        console.log('Thumbs > busboy - middleware processing done');
+      });
 
-    console.log('Controller for /img/thumbs > start save workflow');
+      console.log('Thumbs > start save workflow');
 
-    req.pipe(req.busboy);
+      req.pipe(req.busboy);
     }
     else {
-      console.error('Controller for /img/thumbs > Save new asset could not be done as busboy not found in web request');
+      console.error('Thumbs > Save new asset could not be done as busboy not found in web request');
     }
   }
 }

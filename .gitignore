@@ -36,3 +36,13 @@ node_modules
 
 # IDE
 .idea
+
+# Uploaded Images (exceptsome samples)
+public/imgs/originals/*
+!public/imgs/originals/1462510283123_cool_cat.jpg
+public/imgs/thumbs/lrg/*
+!public/imgs/thumbs/lrg/1462510283123_cool_cat.jpg
+public/imgs/thumbs/med/*
+!public/imgs/thumbs/med/1462510283123_cool_cat.jpg
+public/imgs/thumbs/sml/*
+!public/imgs/thumbs/sml/1462510283123_cool_cat.jpg
