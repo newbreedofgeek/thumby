@@ -6,6 +6,6 @@ exports.connect = (app) => {
   const thumbs = new Thumbs();
 
   app.get('/', home.route);
-  app.get('/thumbs', thumbs.route);
+  // app.get('/thumbs', thumbs.route);
   app.post('/thumbs/create', thumbs.create);
 };
