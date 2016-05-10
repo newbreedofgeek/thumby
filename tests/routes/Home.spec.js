@@ -1,6 +1,6 @@
-import { Thumbs } from '../../src/routes/';
+import { Home } from '../../src/routes/';
 
-describe('Thumbs', () => {
+describe('Home', () => {
   let status = null;
   const mockReq = {};
   const mockRes = {
@@ -8,14 +8,15 @@ describe('Thumbs', () => {
   };
 
   beforeEach(() => {
-    status = new Thumbs();
+    status = new Home();
   });
 
   it('should return route', () => {
     status.route(mockReq, mockRes);
 
     expect(mockRes.json).to.be.calledWith({
-      status: 'root'
+      ok: 1,
+      msg: 'Welcome to thumbiser'
     });
   });
 });

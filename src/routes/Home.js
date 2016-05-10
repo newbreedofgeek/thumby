@@ -1,7 +1,8 @@
 class Home {
   route(req, res) {
     res.json({
-      env: 'This is Production'
+      ok: 1,
+      msg: 'Welcome to thumbiser'
     });
   }
 }

@@ -6,81 +6,124 @@ import Promise from 'bluebird';
 
 class Thumbs {
   constructor() {
+    this.image = '';
+    this.fname = '';
+    this.originalImgLoc = '';
+    this.apiResponse = {};
+
     this.create = this.create.bind(this);
   }
 
-  createThumbs(orientation, image, filename) {
+  // promisified lwip thumb creator
+  createThumb(subFolder, targetScale) {
     return new Promise((resolve, reject) => {
-      image.clone((e2, clone1) => {
-        if (e2) reject(e2);
+      this.image.clone((e1, cloned) => {
+        cloned.batch()
+          .scale(targetScale)
+          .writeFile(path.join(__dirname, '/../..', cfg.storageRoot, subFolder, this.fname), (e2) => {
+            if (e2) reject(e2);
 
-        clone1.batch()
-        .scale(parseInt(cfg.thumbs.landscape.lrgWidth, 10) / image.width())
-        .writeFile(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/thumbs/lrg/', filename), (e3) => {
-          if (e2) reject(e3);
-
-          image.clone((e4, clone2) => {
-            if (e4) reject(e4);
-
-            clone2.batch()
-            .scale(parseInt(cfg.thumbs.landscape.medWidth, 10) / image.width())
-            .writeFile(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/thumbs/med/', filename), (e5) => {
-              if (e5) reject(e5);
-
-              image.clone((e6, clone3) => {
-                if (e6) reject(e6);
-
-                clone3.batch()
-                .scale(parseInt(cfg.thumbs.landscape.smlWidth, 10) / image.width())
-                .writeFile(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/thumbs/sml/', filename), (e7) => {
-                  if (e7) reject(e7);
-
-                  resolve();
-                });
-              });
-            });
+            resolve();
           });
-        });
       });
     });
   }
 
-  create(req, res) {
-      req.busboy.on('file', (fieldname, file, fn) => {
-        const filename = `${new Date().getTime().toString()}_${fn}`;
+  // promisified lwip thumbs handler
+  createThumbs() {
+    return new Promise((resolve, reject) => {
+      let lrgScale = 1;
+      let medScale = 1;
+      let smlScale = 1;
 
-        // Path where image will be uploaded
-        const fstream = fs.createWriteStream(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/originals/', filename));
-        file.pipe(fstream);
+      // do we need a large? (i.e. is the original width larger than our requirment)
+      if (this.image.width() > cfg.lrgWidth) {
+        lrgScale = cfg.lrgWidth / this.image.width();
+      }
 
-        fstream.on('close', () => {
-          console.log(`Thumbs > raw file upload finished for: ${filename}`);
+      // etc... do we need a med?
+      if (this.image.width() > cfg.medWidth) {
+        medScale = cfg.medWidth / this.image.width();
+      }
 
-          lwip.open(path.join(__dirname, '/../..', cfg.thumbs.storageRoot, '/originals/', filename), (e1, image) => {
+      // etc... do we need a sml?
+      if (this.image.width() > cfg.smlWidth) {
+        smlScale = cfg.smlWidth / this.image.width();
+      }
 
-            if (!e1) {
-              console.log(`Thumbs > open and make thumbs for: ${filename} original rez is width ${image.width()} height = ${image.height()}`);
+      // create the thumbs
+      let promGen = null;
 
-              this.createThumbs('', image, filename).then(() => {
-                res.json({
-                  ok: '1',
-                  filename
-                });
-              }).catch((e) => {
-                res.json({
-                  ok: '0',
-                  error: e
-                });
-              });
-            }
-            else {
-              console.warn(`Thumbs > Error the raw file for: ' ${filename}`);
-            }
-          });
-        });
+      this.createThumb('/thumbs/lrg/', lrgScale)
+        .then(() => {
+          promGen = this.createThumb('/thumbs/med/', medScale);
+          return promGen;
+        })
+        .then(() => {
+          promGen = this.createThumb('/thumbs/sml/', smlScale);
+          return promGen;
+        })
+        .then(() => {resolve();})
+        .catch((e) => {reject(e);});
+    });
+  }
+
+  // promisified lwip open wrapper
+  openFile() {
+    return new Promise((resolve, reject) => {
+      lwip.open(this.originalImgLoc, (e, image) => {
+        if (e) reject(e);
+
+        this.image = image; // lwip image opject
+
+        // trash original if requested
+        if (cfg.trashOriginal) {
+          fs.removeSync(this.originalImgLoc);
+        }
+
+        resolve();
       });
+    });
+  }
 
-      req.pipe(req.busboy);
+  // main route handler
+  create(req, res) {
+    // wait for file stream to come in
+    req.busboy.on('file', (fieldname, file, fn) => {
+      this.fname = `${new Date().getTime().toString()}_${fn}`; // file name to use
+      this.originalImgLoc = path.join(__dirname, '/../..', cfg.storageRoot, '/originals/', this.fname);  // full path of original image location
+
+      // save the stream to disk
+      const fstream = fs.createWriteStream(this.originalImgLoc);
+      file.pipe(fstream);
+
+      // wait for file to be saved to disk
+      fstream.on('close', () => {
+        // async open the file using lwip
+        this.openFile()
+          .then(() => {
+            // create a thumbs async
+            const promThu = this.createThumbs().then(() => {
+              // success - everything was done
+              this.apiResponse.ok = 1;
+              this.apiResponse.filename = this.fname;
+
+              res.json(this.apiResponse);
+            });
+
+            return promThu;
+          })
+          .catch((e) => {
+            // fail - something failed in workflow, look at error
+            this.apiResponse.ok = 0;
+            this.apiResponse.error = e;
+
+            res.json(this.apiResponse);
+          });
+      });
+    });
+
+    req.pipe(req.busboy); // stream the file via busboy
   }
 }
 
