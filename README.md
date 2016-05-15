@@ -1,4 +1,4 @@
-# thumbiser
+# thumby
 A simple pure node.js service and server to create, store and serve thumbnail images.
 
 
@@ -25,13 +25,22 @@ install it and use it like below
 - resonse will indicate if its a success. e.g response is `{"ok": 1, "filename": "1462510283123_cool_cat.jpg"}`.
 - `ok 1` means its a success and `0` means its a fail
 - if its a fail then `error` details are given
-- if its a success, then saved image name is given in `filename`. which can now be publicly called like so `http://server-root/1462510283123_cool_cat.jpg`
+- if its a success, then saved image name is given in `filename`
+
+### image server usage
+- the uploaded and scaled images and thumbs can be now accessed via the built in image server
+- originals from : `[http://server-root/imgs/originals/1462510283123_cool_cat.jpg]`
+- large thumbs from : `[http://server-root/imgs/thumbs/lrg/1462510283123_cool_cat.jpg]`
+- medium thumbs from : `[http://server-root/imgs/thumbs/med/1462510283123_cool_cat.jpg]`
+- sml thumbs from : `[http://server-root/imgs/thumbs/sml/1462510283123_cool_cat.jpg]`
 
 ### dev
 - update the project to add your own stuff if you want
 - `npm run watch` to launch live update dev server (runs tests and lints on each update)
 
 ### todo
+- add server caching to image server
+- add http header caching to image served
 - write the dame tests
 - add config driven cache headers for serving the images
 - provide routes to clean up thumbs (delete)

@@ -1,6 +1,6 @@
 {
-  "name": "thumbiser",
-  "version": "0.0.3",
+  "name": "thumby",
+  "version": "1.0.0",
   "description": "An image thumb creator and storage service.",
   "main": "src/index.js",
   "engines": {

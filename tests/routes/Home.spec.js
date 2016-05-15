@@ -16,7 +16,7 @@ describe('Home', () => {
 
     expect(mockRes.json).to.be.calledWith({
       ok: 1,
-      msg: 'Welcome to thumbiser'
+      msg: 'Welcome to thumby'
     });
   });
 });
