@@ -34,6 +34,12 @@ install it and use it like below
 - medium thumbs from : `[http://server-root/imgs/thumbs/med/1462510283123_cool_cat.jpg]`
 - sml thumbs from : `[http://server-root/imgs/thumbs/sml/1462510283123_cool_cat.jpg]`
 
+#### usage with docker/dokku
+By default thumby stores images in the local "/public/imgs" folder. but this only works if you are running thumby in a standalone server. if you are running it in a container (like docker or dokku) then "/public/imgs" gets nuked at each rebuild. in this case you should mount a persistent host directory to a virtual directory called "/storage" inside your docker container. for e.g. you can mount "/var/lib/your-app/storage" in your host server to "/storage" inside your docker container and then change the "storageRoot" config setting in "/src/config.js" to be '/storage'. the directory names "storage" is recommended as in the code found in /app.js we set this value as a static location so you can reference your images via the web.
+
+in the case of a mounted directory, your images can be referenced from : `[http://server-root/originals/1462510283123_cool_cat.jpg]` ("imgs" path not needed)
+
+
 ### dev
 - update the project to add your own stuff if you want
 - `npm run watch` to launch live update dev server (runs tests and lints on each update)
@@ -46,6 +52,8 @@ install it and use it like below
 - provide routes to clean up thumbs (delete)
 
 #### change log
+- 1.1.0
+  - minor update to support mounted virtual folders to save physical files (in the case of docker or dokku usage of thumby)
 - 1.0.0
   - formalise the first version
 - 0.0.3
