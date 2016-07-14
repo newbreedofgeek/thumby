@@ -25,8 +25,8 @@ app.use((req, res, next) => {
 
 app.use(cors());
 app.use(busboy());
-app.use(express.static(path.join(__dirname, '../public'))); // if images are stored locally in the public directory
-app.use(express.static(path.join(__dirname, '../storage'))); // if images are mounted (to a dir named storage) - usueful if we run thumby inside a docker container and need persistant storage
+app.use(express.static(path.join(__dirname, '../public'), { maxAge: ((cfg.imgCache) ? cfg.imgCache : 0)})); // if images are stored locally in the public directory
+app.use(express.static(path.join(__dirname, '../storage'), { maxAge: ((cfg.imgCache) ? cfg.imgCache : 0)})); // if images are mounted (to a dir named storage) - usueful if we run thumby inside a docker container and need persistant storage
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

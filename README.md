@@ -8,6 +8,7 @@ A simple pure node.js service and server to create, store and serve thumbnail im
 - config driven thumb sizes (support lrg, med and sml sizes)
 - choose to keep original image or delete it (via config)
 - resized images can then be accessed publicly
+- caches images (by default) to 8 hours (e.g Cache-Control:public, max-age=31536) but can be updated via config
 ```
 
 ### get started
@@ -52,6 +53,8 @@ in the case of a mounted directory, your images can be referenced from : `[http:
 - provide routes to clean up thumbs (delete)
 
 #### change log
+- 1.2.0
+  - in config.js there is now imgCache which can be used to specify the cache-control header. Defaults to 8 hours.
 - 1.1.0
   - minor update to support mounted virtual folders to save physical files (in the case of docker or dokku usage of thumby)
 - 1.0.0
