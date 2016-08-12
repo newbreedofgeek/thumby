@@ -53,6 +53,8 @@ in the case of a mounted directory, your images can be referenced from : `[http:
 - provide routes to clean up thumbs (delete)
 
 #### change log
+- 1.3.0
+  - in config.js there is now skipImgTs which can be used to skip timestamps being added to img names
 - 1.2.0
   - in config.js there is now imgCache which can be used to specify the cache-control header. Defaults to 8 hours.
 - 1.1.0

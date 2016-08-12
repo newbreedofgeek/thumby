@@ -6,7 +6,8 @@ export default {
   lrgWidth: 600,
   medWidth: 312,
   smlWidth: 160,
-  imgCache: 31536000 // cache imgs for 8 hours here (its in ms)
+  imgCache: 31536000, // cache imgs for 8 hours here (its in ms)
+  skipImgTs: false // dont append a timestamp on the physical image name
 };
 
 // **

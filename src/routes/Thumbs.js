@@ -90,7 +90,7 @@ class Thumbs {
   create(req, res) {
     // wait for file stream to come in
     req.busboy.on('file', (fieldname, file, fn) => {
-      this.fname = `${new Date().getTime().toString()}_${fn}`; // file name to use
+      this.fname = (!cfg.skipImgTs) ? `${new Date().getTime().toString()}_${fn}` : fn; // file name to use
       this.originalImgLoc = path.join(__dirname, '/../..', cfg.storageRoot, '/originals/', this.fname);  // full path of original image location
 
       // save the stream to disk
