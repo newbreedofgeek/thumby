@@ -1,6 +1,8 @@
 # thumby
-A simple pure node.js service and server to create, store and serve thumbnail images.
 
+![thumby](https://raw.githubusercontent.com/newbreedofgeek/thumby/master/logo.png)
+
+A simple pure node.js service and server to create, store and serve thumbnail images.
 
 ### what does it do?
 ```
