@@ -30,6 +30,17 @@ install it and use it like below
 - if its a fail then `error` details are given
 - if its a success, then saved image name is given in `filename`
 
+### api endpoints
+```
+1] POST - /thumbs/create
+
+request:
+File as 'form-data' (no key name)
+
+response:
+200 OK if a success
+```
+
 ### image server usage
 - the uploaded and scaled images and thumbs can be now accessed via the built in image server
 - originals from : `[http://server-root/imgs/originals/1462510283123_cool_cat.jpg]`
