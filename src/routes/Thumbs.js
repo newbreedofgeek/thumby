@@ -3,13 +3,13 @@ import lwip from 'lwip';
 import cfg from '../config';
 import path from 'path';
 import Promise from 'bluebird';
+import { InvalidRequest, FileUploadError } from '../errors';
 
 class Thumbs {
   constructor() {
     this.image = '';
     this.fname = '';
     this.originalImgLoc = '';
-    this.apiResponse = {};
 
     this.create = this.create.bind(this);
   }
@@ -86,10 +86,34 @@ class Thumbs {
     });
   }
 
+  catchHandler(e, detail) {
+    const error = {
+      success: false,
+      error: {
+        code: e.name || null,
+        message: e.message || null,
+        detail: detail || null
+      }
+    };
+
+    this.res.status(400).json(error);
+    throw e;
+  }
+
   // main route handler
   create(req, res) {
+    let processedFiles = 0;
+
+    this.res = res;
+
+    if (!req.busboy) {
+      this.catchHandler(new InvalidRequest('No file was uploaded'));
+    }
+
     // wait for file stream to come in
     req.busboy.on('file', (fieldname, file, fn) => {
+      processedFiles++;
+
       this.fname = (!cfg.skipImgTs) ? `${new Date().getTime().toString()}_${fn}` : fn; // file name to use
       this.originalImgLoc = path.join(__dirname, '/../..', cfg.storageRoot, '/originals/', this.fname);  // full path of original image location
 
@@ -105,22 +129,25 @@ class Thumbs {
             // create a thumbs async
             const promThu = this.createThumbs().then(() => {
               // success - everything was done
-              this.apiResponse.ok = 1;
-              this.apiResponse.filename = this.fname;
-
-              res.json(this.apiResponse);
+              res.json({
+                success: true,
+                filename: this.fname
+              });
             });
 
             return promThu;
           })
           .catch((e) => {
             // fail - something failed in workflow, look at error
-            this.apiResponse.ok = 0;
-            this.apiResponse.error = e;
-
-            res.json(this.apiResponse);
+            this.catchHandler(new FileUploadError('File upload workflow issue'), e);
           });
       });
+    });
+
+    req.busboy.on('finish', () => {
+      if (processedFiles === 0) {
+        this.catchHandler(new InvalidRequest('No file was uploaded'));
+      }
     });
 
     req.pipe(req.busboy); // stream the file via busboy

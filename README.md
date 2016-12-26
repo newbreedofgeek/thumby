@@ -35,10 +35,14 @@ install it and use it like below
 1] POST - /thumbs/create
 
 request:
-File as 'form-data' (no key name)
+File as multipart form-data (no key name required and only 1 file supported at a time for now)
 
 response:
-200 OK if a success
+200 - success
+filename: Your uploaded filename
+
+400 - critical error
+error: {code, message and detail}
 ```
 
 ### image server usage
