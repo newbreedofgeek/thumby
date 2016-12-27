@@ -70,7 +70,7 @@ in the case of a mounted directory, your images can be referenced from : `[http:
 ### todo
 - add server caching to image server
 - add http header caching to image served
-- write the dame tests
+- ~~write the dame tests~~
 - add config driven cache headers for serving the images
 - provide routes to clean up thumbs (delete)
 
