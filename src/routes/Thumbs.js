@@ -96,7 +96,8 @@ class Thumbs {
       }
     };
 
-    this.res.status(400).json(error);
+    this.res.status(400);
+    this.res.json(error);
     throw e;
   }
 
