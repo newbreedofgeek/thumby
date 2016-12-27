@@ -62,6 +62,11 @@ in the case of a mounted directory, your images can be referenced from : `[http:
 - update the project to add your own stuff if you want
 - `npm run watch` to launch live update dev server (runs tests and lints on each update)
 
+### tests
+- tests are written in the mocha, chai, sinon stack
+- located in the 'tests' folder
+- tests run in 'watch' mode to facilitate TDD
+
 ### todo
 - add server caching to image server
 - add http header caching to image served

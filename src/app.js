@@ -33,7 +33,15 @@ app.use(express.static(path.join(__dirname, '../storage'), { maxAge: ((cfg.imgCa
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
 // Load clients into the app
 router.connect(app);
+
+// exception handling middleware
+app.use((err, req, res, next) => {
+  const globalErrorHandler = require('./utils/globalErrorHandler');
+
+  globalErrorHandler.log(err, req, res, next);
+});
 
 app.set('port', process.env.PORT || cfg.port);
