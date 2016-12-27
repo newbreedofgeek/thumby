@@ -3,7 +3,7 @@ import lwip from 'lwip';
 import cfg from '../config';
 import path from 'path';
 import Promise from 'bluebird';
-import { InvalidRequest, FileUploadError } from '../errors';
+import { InvalidRequest, FileUploadIssue } from '../errors';
 
 class Thumbs {
   constructor() {
@@ -140,7 +140,7 @@ class Thumbs {
           })
           .catch((e) => {
             // fail - something failed in workflow, look at error
-            this.catchHandler(new FileUploadError('File upload workflow issue'), e);
+            this.catchHandler(new FileUploadIssue('File upload workflow issue'), e);
           });
       });
     });

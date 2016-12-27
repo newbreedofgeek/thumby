@@ -1,7 +1,7 @@
 import InvalidRequest from './InvalidRequest';
-import FileUploadError from './FileUploadError';
+import FileUploadIssue from './FileUploadIssue';
 
 module.exports = {
   InvalidRequest,
-  FileUploadError
+  FileUploadIssue
 };
