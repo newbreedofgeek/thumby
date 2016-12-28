@@ -67,6 +67,11 @@ in the case of a mounted directory, your images can be referenced from : `[http:
 - located in the 'tests' folder
 - tests run in 'watch' mode to facilitate TDD
 
+### code test coverage
+- test coverage is done via istanbul
+- run the `npm run test-coverage` command to generate full coverage report (shown in terminal and as lcov report in coverage directory)
+- all code is run against coverage, not just the unit tested modules
+
 ### todo
 - add server caching to image server
 - add http header caching to image served

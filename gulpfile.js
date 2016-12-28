@@ -3,6 +3,7 @@ var path = require('path');
 var gulp = require('gulp');
 var nodemon = require('gulp-nodemon');
 var loadPlugins = require('gulp-load-plugins');
+var isparta = require('isparta');
 
 // Load all of our Gulp plugins
 var $ = loadPlugins();
@@ -20,7 +21,6 @@ function lint(files) {
     .pipe($.eslint.format())
     .pipe($.eslint.failOnError());
 }
-
 
 function test() {
   return gulp.src(['./tests/**/*.spec.js'], {read: false})
@@ -73,6 +73,24 @@ gulp.task('watch', ['test', 'build'], function() {
     tasks: ['test', 'build'],
     env: { 'NODE_ENV': 'development'}
   });
+});
+
+gulp.task('test-coverage', function () {
+  _registerBabel();
+
+  return gulp.src(['src/**/*.js'])
+    .pipe($.istanbul({ // Covering filecs
+          instrumenter: isparta.Instrumenter,
+          includeUntested: true }))
+    .pipe($.istanbul.hookRequire()) // Force `require` to return covered files
+    .on('finish', () => {
+      gulp.src(['./tests/**/*.spec.js'], {read: false})
+        .pipe($.mocha({
+              reporter: 'spec',
+              globals: ["sinon", "chai", "expect"],
+              require: ['./tests/test-helper.js'] }))
+        .pipe($.istanbul.writeReports());
+    });
 });
 
 gulp.task('default', ['watch']);
